@@ -5,7 +5,7 @@
  * Author URI: https://rudrastyh.com
  * Description: Allows to crosspost post IDs and term IDs in custom fields
  * Plugin URI: https://rudrastyh.com/support/crossposting-relationships-fields
- * Version: 1.0
+ * Version: 1.1
  * Network: true
  */
 
@@ -40,7 +40,16 @@ class Rudr_SMC_Relationships {
 	private function process_post_relationships( $meta_value, $blog ) {
 
 		$meta_value = maybe_unserialize( $meta_value );
-		$ids = is_array( $meta_value ) ? $meta_value : array( $meta_value );
+		$is_comma_separated = false;
+		// let's make it array anyway for easier processing
+		if( is_array( $meta_value ) ) {
+			$ids = $meta_value;
+		} elseif( false !== strpos( $meta_value, ',' ) ) {
+			$is_comma_separated = true;
+			$ids = array_map( 'trim', explode( ',', $meta_value ) );
+		} else {
+			$ids = array( $meta_value );
+		}
 		$new_blog_id = get_current_blog_id();
 		restore_current_blog();
 
@@ -68,8 +77,13 @@ class Rudr_SMC_Relationships {
 			}
 		}
 
-		return is_array( $meta_value ) ? maybe_serialize( $crossposted_ids ) : ( $crossposted_ids ? reset( $crossposted_ids ) : 0 );
-
+		if( is_array( $meta_value ) ) {
+			return maybe_serialize( $crossposted_ids );
+		} elseif( $crossposted_ids ) {
+			return $is_comma_separated ? join( ',', $crossposted_ids ) : reset( $crossposted_ids );
+		} else {
+			return 0;
+		}
 
 	}
 
@@ -77,7 +91,16 @@ class Rudr_SMC_Relationships {
 
 		// can be either int or a serialized array
 		$meta_value = maybe_unserialize( $meta_value );
-		$ids = is_array( $meta_value ) ? $meta_value : array( $meta_value );
+		$is_comma_separated = false;
+		// let's make it array anyway for easier processing
+		if( is_array( $meta_value ) ) {
+			$ids = $meta_value;
+		} elseif( false !== strpos( $meta_value, ',' ) ) {
+			$is_comma_separated = true;
+			$ids = array_map( 'trim', explode( ',', $meta_value ) );
+		} else {
+			$ids = array( $meta_value );
+		}
 		$new_blog_id = get_current_blog_id();
 		restore_current_blog();
 
@@ -100,7 +123,13 @@ class Rudr_SMC_Relationships {
 			}
 		}
 
-		return is_array( $meta_value ) ? maybe_serialize( $crossposted_term_ids ) : ( $crossposted_term_ids ? reset( $crossposted_term_ids ) : 0 );
+		if( is_array( $meta_value ) ) {
+			return maybe_serialize( $crossposted_term_ids );
+		} elseif( $crossposted_term_ids ) {
+			return $is_comma_separated ? join( ',', $crossposted_term_ids ) : reset( $crossposted_term_ids );
+		} else {
+			return 0;
+		}
 
 	}
 
